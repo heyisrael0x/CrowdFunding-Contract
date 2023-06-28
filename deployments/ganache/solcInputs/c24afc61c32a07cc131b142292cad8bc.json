@@ -1,0 +1,38 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "@openzeppelin/contracts/security/ReentrancyGuard.sol": {
+      "content": "// SPDX-License-Identifier: MIT\n\npragma solidity ^0.8.0;\n\n/**\n * @dev Contract module that helps prevent reentrant calls to a function.\n *\n * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier\n * available, which can be applied to functions to make sure there are no nested\n * (reentrant) calls to them.\n *\n * Note that because there is a single `nonReentrant` guard, functions marked as\n * `nonReentrant` may not call one another. This can be worked around by making\n * those functions `private`, and then adding `external` `nonReentrant` entry\n * points to them.\n *\n * TIP: If you would like to learn more about reentrancy and alternative ways\n * to protect against it, check out our blog post\n * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].\n */\nabstract contract ReentrancyGuard {\n    // Booleans are more expensive than uint256 or any type that takes up a full\n    // word because each write operation emits an extra SLOAD to first read the\n    // slot's contents, replace the bits taken up by the boolean, and then write\n    // back. This is the compiler's defense against contract upgrades and\n    // pointer aliasing, and it cannot be disabled.\n\n    // The values being non-zero value makes deployment a bit more expensive,\n    // but in exchange the refund on every call to nonReentrant will be lower in\n    // amount. Since refunds are capped to a percentage of the total\n    // transaction's gas, it is best to keep them low in cases like this one, to\n    // increase the likelihood of the full refund coming into effect.\n    uint256 private constant _NOT_ENTERED = 1;\n    uint256 private constant _ENTERED = 2;\n\n    uint256 private _status;\n\n    constructor() {\n        _status = _NOT_ENTERED;\n    }\n\n    /**\n     * @dev Prevents a contract from calling itself, directly or indirectly.\n     * Calling a `nonReentrant` function from another `nonReentrant`\n     * function is not supported. It is possible to prevent this from happening\n     * by making the `nonReentrant` function external, and make it call a\n     * `private` function that does the actual work.\n     */\n    modifier nonReentrant() {\n        // On the first call to nonReentrant, _notEntered will be true\n        require(_status != _ENTERED, \"ReentrancyGuard: reentrant call\");\n\n        // Any calls to nonReentrant after this point will fail\n        _status = _ENTERED;\n\n        _;\n\n        // By storing the original value once again, a refund is triggered (see\n        // https://eips.ethereum.org/EIPS/eip-2200)\n        _status = _NOT_ENTERED;\n    }\n}\n"
+    },
+    "contracts/CrowdFunding.sol": {
+      "content": "// SPDX-License-Identifier: MIT\r\npragma solidity ^0.8.9;\r\n\r\nimport \"@openzeppelin/contracts/security/ReentrancyGuard.sol\";\r\n\r\nerror CrowdFunding__DeadlineShouldBeInTheFuture();\r\nerror CrowdFunding__DonationNotSuccessFully();\r\nerror CrowdFunding__PleaseSendEnough();\r\n\r\ncontract CrowdFunding is ReentrancyGuard {\r\n    struct Campaign {\r\n        address owner;\r\n        string title;\r\n        string description;\r\n        uint256 target;\r\n        uint256 deadline;\r\n        uint256 amountCollected;\r\n        string image;\r\n        address[] donators;\r\n        uint256[] donations;\r\n    }\r\n\r\n    mapping(uint256 => Campaign) public campaigns;\r\n\r\n    uint256 public campaignId = 0;\r\n\r\n    event CampaignCreated(\r\n        address indexed _owner,\r\n        string _title,\r\n        string _description,\r\n        uint256 _target,\r\n        uint256 _deadline,\r\n        string _image\r\n    );\r\n\r\n    function createCampaign(\r\n        // address _owner,\r\n        string memory _title,\r\n        string memory _description,\r\n        uint256 _target,\r\n        uint256 _deadline,\r\n        string memory _image\r\n    ) public nonReentrant {\r\n        Campaign storage campaign = campaigns[campaignId];\r\n\r\n        if (_deadline < block.timestamp) {\r\n            revert CrowdFunding__DeadlineShouldBeInTheFuture();\r\n        }\r\n        campaign.owner = msg.sender;\r\n        campaign.title = _title;\r\n        campaign.description = _description;\r\n        campaign.target = _target;\r\n        campaign.deadline = _deadline;\r\n        campaign.image = _image;\r\n\r\n        campaignId++;\r\n\r\n        emit CampaignCreated(\r\n            msg.sender,\r\n            _title,\r\n            _description,\r\n            _target,\r\n            _deadline,\r\n            _image\r\n        );\r\n    }\r\n\r\n    function donateToCampaign(uint256 _id) public payable {\r\n        if (msg.value <= 0) {\r\n            revert CrowdFunding__PleaseSendEnough();\r\n        }\r\n        uint256 amount = msg.value;\r\n        Campaign storage campaign = campaigns[_id];\r\n\r\n        (bool sent, ) = payable(campaign.owner).call{value: amount}(\"\");\r\n        if (sent) {\r\n            campaign.donators.push(msg.sender);\r\n            campaign.donations.push(amount);\r\n            campaign.amountCollected = campaign.amountCollected + amount;\r\n        } else {\r\n            revert CrowdFunding__DonationNotSuccessFully();\r\n        }\r\n    }\r\n\r\n    function getDonators(\r\n        uint256 _id\r\n    ) public view returns (address[] memory, uint256[] memory) {\r\n        return (campaigns[_id].donators, campaigns[_id].donations);\r\n    }\r\n\r\n    function getCampaigns() public view returns (Campaign[] memory) {\r\n        Campaign[] memory allCampaigns = new Campaign[](campaignId);\r\n\r\n        for (uint i = 0; i < campaignId; i++) {\r\n            Campaign storage item = campaigns[i];\r\n\r\n            allCampaigns[i] = item;\r\n        }\r\n        return allCampaigns;\r\n    }\r\n}\r\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": false,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}
