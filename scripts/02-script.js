@@ -1,27 +1,27 @@
 const { ethers } = require("hardhat");
-const title = "My Startup";
+const title = "I love food";
 const description =
-  "I need to pay my school fee for the coming session. Please donate Thanks ser";
-const target = "1000000000000000000";
-const deadline = "20012348632832";
-const image = "http://localhost:5173/src/assets/image.jpg";
-const id = 0;
+  "I food. Please donate Thanks ser";
+const target = "5000000000000000000";
+const deadline = "200123486328";
+const image = "http://localhost:5173/src/assets/food.jpg";
 const main = async () => {
   const crowdFunding = await ethers.getContract("CrowdFunding");
-  console.log("getting campaigns");
   console.log(crowdFunding.address);
-  const tx = await crowdFunding.getDonators(
-    id
-    // title,
-    // description,
-    // target,
-    // deadline,
-    // image
-  );
-  // await tx.wait(1);
 
-  console.log(tx);
-  console.log("Got Campaigns");
+  for (let I = 0; I < 25; I++) {
+    console.log(`Creating: ${I + 1}`);
+    const tx = await crowdFunding.createCampaign(
+      title,
+      description,
+      target,
+      deadline,
+      image
+    );
+  }
+
+
+  console.log("Campaign Created");
 };
 main().catch((error) => {
   console.error(error);

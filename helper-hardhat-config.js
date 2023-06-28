@@ -12,8 +12,8 @@ const networkConfig = {
 
 const developmentChains = ["localhost", "hardhat", "ganache"];
 const FRONTEND_ADDRESSES_FILE =
-  "../Raffle-Frontend/src/constants/contractAddress.json";
-const FRONTEND_ABI_FILE = "../Raffle-Frontend/src/constants/abi.json";
+  "../Frontend/src/constants/contractAddress.json";
+const FRONTEND_ABI_FILE = "../Frontend/src/constants/abi.json";
 
 
 module.exports = {
