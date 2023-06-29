@@ -13,15 +13,15 @@ module.exports = async function ({ getNamedAccounts, deployments }) {
     log: true,
     waitConfirmations: network.config.blockConfirmations || 1,
   });
-  if (
-    !developmentChains.includes(network.name) &&
-    process.env.ETHERSCAN_API_KEY
-  ) {
-    log("verify.....");
-    await verify(crowdFunding.address, args);
-  } else {
-    log("On a develpoment-chain not verifing");
-  }
+  // if (
+  //   !developmentChains.includes(network.name) &&
+  //   process.env.ETHERSCAN_API_KEY
+  // ) {
+  //   log("verify.....");
+  //   await verify(crowdFunding.address, args);
+  // } else {
+  //   log("On a develpoment-chain not verifing");
+  // }
   log("--------------------------");
 };
 
